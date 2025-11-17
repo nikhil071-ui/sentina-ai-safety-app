@@ -1,0 +1,687 @@
+/* In src/App.css */
+
+/* --- 1. Basic Setup & Font --- */
+body {
+  margin: 0;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* NEW: Added a subtle gradient background */
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #333;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box; 
+  /* In src/App.css */
+
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box; 
+  position: relative; /* <-- ADD THIS LINE */
+}
+}
+
+/* --- 2. Main Container (Glass Effect) --- */
+.container {
+  /* NEW: Glassmorphism effect */
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  
+  padding: 100px;
+  width: 100%;
+  max-width: 1100px;
+  box-sizing: border-box;
+}
+
+h1 {
+  color: #d90429; /* A stronger, darker red */
+  margin-top: 0;
+  font-size: 2.5rem;
+}
+
+h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+p {
+  color: #555;
+  line-height: 1.6;
+}
+
+/* --- 3. The SOS Button --- */
+.sosButton {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ef233c, #d90429);
+  color: white;
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  margin: 30px 0;
+  
+  /* NEW: More modern shadow */
+  box-shadow: 0 10px 30px rgba(217, 4, 41, 0.4);
+  
+  animation: pulse 1.5s infinite;
+  transition: all 0.3s ease;
+}
+
+.sosButton:hover {
+  background: linear-gradient(145deg, #d90429, #ef233c);
+  box-shadow: 0 15px 40px rgba(217, 4, 41, 0.6);
+  transform: translateY(-5px); /* Lift the button on hover */
+  animation-play-state: paused;
+}
+
+.sosButton:active {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(217, 4, 41, 0.5);
+}
+
+/* --- 4. Inputs & Other Buttons --- */
+.input {
+  width: calc(100% - 24px); 
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.button {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 8px;
+  
+  /* NEW: Style for icons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Space between icon and text */
+}
+
+.saveButton {
+  background-color: #007bff;
+  color: white;
+}
+.saveButton:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.settingsButton, .backButton {
+  background-color: #6c757d;
+  color: white;
+}
+.settingsButton:hover, .backButton:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* --- 5. Status & Animation --- */
+.statusMessage {
+  font-size: 16px;
+  font-weight: 500;
+  color: #007bff;
+  height: 20px; /* Reserve space so layout doesn't jump */
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(217, 4, 41, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 25px rgba(217, 4, 41, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 4, 41, 0);
+  }
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 6. Disguise Toggle Button --- */
+.disguise-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  z-index: 100; /* <-- ADD THIS LINE */
+}
+
+.disguise-toggle:hover {
+  transform: scale(1.1);
+  color: #000;
+}
+
+/* --- 7. Calculator Disguise Styles --- */
+.calculator {
+  width: 100%;
+  max-width: 320px;
+  background: #333;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.calc-display {
+  width: 100%;
+  background: #444;
+  color: white;
+  font-size: 2.5rem;
+  padding: 20px;
+  text-align: right;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calc-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.calc-button {
+  font-size: 1.5rem;
+  padding: 20px;
+  border-radius: 10px;
+  border: none;
+  background: #555;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.calc-button:hover {
+  background: #666;
+}
+
+.calc-button:active {
+  background: #777;
+}
+
+.calc-button.clear {
+  width: calc(100% - 10px); /* Full width */
+  background: #d90429;
+  margin-bottom: 10px;
+}
+.calc-button.clear:hover {
+  background: #ef233c;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 8. Helper Utilities & Dividers --- */
+
+.divider {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap; /* Allows buttons to wrap on small screens */
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Style for the new resource buttons */
+.resourceButton {
+  background-color: #17a2b8; /* A new color (info blue) */
+  color: white;
+}
+
+.resourceButton:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+
+/* Style for the timer countdown display */
+.timerDisplay {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #333;
+  margin: 20px 0;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 9. Contact List Styles (Settings Page) --- */
+
+.add-contact-form {
+  display: flex;
+  gap: 10px;
+}
+
+.add-contact-form .input {
+  flex-grow: 1; /* Input takes remaining space */
+  margin-bottom: 0;
+}
+
+.contact-list {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.contact-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 5px;
+}
+.deleteButton:hover {
+  color: #c82333;
+}
+
+/* --- 10. Contact Preview (SOS Page) --- */
+.contact-list-preview {
+  margin-top: 20px;
+}
+
+.contact-tag {
+  display: inline-block;
+  background: #e9ecef;
+  color: #495057;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  margin: 5px;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 11. Voice Activation Button --- */
+.voiceButton {
+  background-color: #007bff; /* Blue by default */
+  color: white;
+  min-width: 200px; /* Give it some width */
+}
+.voiceButton:hover {
+  background-color: #0056b3;
+}
+
+/* This is the style for when it IS listening */
+.voiceButton.listening {
+  background-color: #dc3545; /* Red to show it's active */
+  color: white;
+  animation: pulse-voice 1.5s infinite;
+}
+
+/* A more subtle pulse for the voice button */
+@keyframes pulse-voice {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 12. Incident Detection Button --- */
+.detectionButton {
+  background-color: #ffc107; /* Warning yellow */
+  color: #333;
+  min-width: 200px;
+}
+.detectionButton:hover {
+  background-color: #e0a800;
+}
+
+/* Style for when it's active (shares 'listening' class) */
+.detectionButton.listening {
+  background-color: #dc3545; /* Red */
+  color: white;
+  animation: pulse-voice 1.5s infinite; /* Re-use the same pulse */
+}
+
+/* --- 13. Incident Detected Container --- */
+/* This animates the container to flash red */
+.incidentContainer {
+  animation: flash-red 1s infinite;
+}
+
+@keyframes flash-red {
+  0% {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    background-color: rgba(220, 53, 69, 0.3); /* Flash red */
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 14. AI Chat Modal Styles --- */
+
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 14. AI Chat Modal Styles (UPDATED) --- */
+
+.chat-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.chat-modal-container {
+  width: 100%;
+  max-width: 500px;
+  height: 70vh;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+.chat-modal-header h3 {
+  margin: 0;
+}
+.chat-action-button { /* Was chat-close-button */
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #888;
+  padding: 5px;
+  margin-left: 10px;
+}
+.chat-action-button:hover {
+  color: #000;
+}
+
+.chat-modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.chat-message {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-end; /* Align copy button */
+  gap: 8px;
+}
+
+/* --- NEW: Chat Bubble Style --- */
+.chat-bubble {
+  padding: 10px 15px;
+  border-radius: 18px;
+  line-height: 1.5;
+  width: fit-content;
+  max-width: 85%;
+}
+
+.chat-message.user {
+  justify-content: flex-end; /* Aligns to the right */
+}
+.chat-message.user .chat-bubble {
+  background-color: #007bff;
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.chat-message.model {
+  justify-content: flex-start; /* Aligns to the left */
+}
+.chat-message.model .chat-bubble {
+  background-color: #f1f1f1;
+  color: #333;
+  border-bottom-left-radius: 5px;
+}
+
+/* --- NEW: Copy Button --- */
+.chat-copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #aaa;
+  padding: 5px;
+  visibility: hidden; /* Hide by default */
+  opacity: 0;
+  transition: all 0.2s;
+}
+.chat-message.model:hover .chat-copy-button {
+  visibility: visible; /* Show on hover */
+  opacity: 1;
+}
+.chat-copy-button:hover {
+  color: #000;
+}
+
+/* --- NEW: Markdown Formatting --- */
+.chat-bubble p {
+  margin: 0 0 5px 0;
+}
+.chat-bubble ul, .chat-bubble ol {
+  padding-left: 20px;
+  margin: 0;
+}
+.chat-bubble li {
+  margin-bottom: 5px;
+}
+
+/* --- UPDATED: Footer --- */
+.chat-modal-footer {
+  display: flex;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  gap: 10px;
+}
+.chat-modal-footer input {
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+}
+.chat-send-button { /* Was button */
+  padding: 0 15px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-send-button:disabled {
+  background: #ccc;
+}
+
+/* --- UPDATED: Typing Indicator --- */
+.typing-indicator {
+  display: flex;
+  padding: 12px 15px;
+}
+.typing-indicator span {
+  height: 8px;
+  width: 8px;
+  background-color: #999;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 2px;
+  animation: blink 1.4s infinite both;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 15. AI Chat Button --- */
+.aiChatButton {
+  background-color: #6f42c1; /* A nice purple for AI */
+  color: white;
+  width: calc(100% - 16px); /* Make it wide */
+  margin-top: 10px;
+}
+.aiChatButton:hover {
+  background-color: #5a32a3;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 16. Tools Grid Layout --- */
+
+.tools-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 equal columns */
+  gap: 15px; /* Space between buttons */
+  margin-top: 25px; /* Space below the contact list */
+}
+
+/* Make all buttons inside the grid fill their cell */
+.tools-grid-container .button {
+  width: 100%;
+  margin: 0; /* Remove default margins */
+  box-sizing: border-box; /* Ensure padding doesn't break layout */
+}
+
+/* Make AI chat button span 2 columns if it's in the grid */
+.tools-grid-container .aiChatButton {
+  grid-column: span 2;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 16. Live Share Button --- */
+.liveShareButton {
+  background-color: #28a745; /* Green */
+  color: white;
+  grid-column: span 2; /* Make it span both columns */
+}
+.liveShareButton:hover {
+  background-color: #218838;
+}
+
+/* --- 17. Live Share Modal Body --- */
+.live-share-body {
+  padding: 20px;
+  text-align: center;
+}
+.live-share-body p {
+  margin-top: 0;
+  color: #555;
+}
+.share-link-input {
+  background: #f1f1f1;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #333;
+  word-wrap: break-word; /* Make sure long link wraps */
+  margin-bottom: 15px;
+}
+.status-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 15px;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 18. Biometric Button --- */
+.biometricButton {
+  background-color: #6610f2; /* A new purple */
+  color: white;
+}
+.biometricButton:hover {
+  background-color: #510bc4;
+}
+
+/* When ARMED, it shares the 'listening' style */
+.biometricButton.listening {
+  background-color: #dc3545; /* Red */
+  color: white;
+  animation: pulse-voice 1.5s infinite;
+}
+/* In src/App.css (ADD TO THE BOTTOM) */
+
+/* --- 19. Report Unsafe Button --- */
+.reportButton {
+  background-color: #ffc107; /* Warning yellow */
+  color: #333;
+  /* This makes it span 2 columns */
+  grid-column: span 2; 
+}
+.reportButton:hover {
+  background-color: #e0a800;
+}

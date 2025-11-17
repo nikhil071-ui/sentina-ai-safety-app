@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        #map { height: 100%; width: 100%; }
+        #loading {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8); z-index: 1001;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading location...</div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+            
+    <script type="module">
+        // Import the functions you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- ⬇️ IMPORTANT: PASTE YOUR CONFIG HERE ⬇️ ---
+        // Get this from your 'src/firebase.js' file
+        const firebaseConfig = {
+            apiKey: "YOUR_REACT_APP_API_KEY",
+            authDomain: "YOUR_REACT_APP_AUTH_DOMAIN",
+            projectId: "YOUR_REACT_APP_PROJECT_ID",
+            storageBucket: "YOUR_REACT_APP_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_REACT_APP_MESSAGING_SENDER_ID",
+            appId: "YOUR_REACT_APP_APP_ID"
+        };
+        // --- ⬆️ IMPORTANT: PASTE YOUR CONFIG HERE ⬆️ ---
+
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- Leaflet Map Setup ---
+        let map = null;
+        let marker = null;
+        const loadingDiv = document.getElementById('loading');
+
+        try {
+            // 1. Get the session ID from the URL
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('session');
+
+            if (!sessionId) {
+                loadingDiv.innerText = "Error: No session ID found.";
+                throw new Error("No session ID");
+            }
+
+            // 2. Create a reference to the Firestore document
+            const sessionRef = doc(db, "live_sessions", sessionId);
+
+            // 3. Listen for REAL-TIME updates
+            onSnapshot(sessionRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const { lat, lng } = data;
+                    
+                    if (lat && lng) {
+                        const latLng = [lat, lng];
+                        loadingDiv.style.display = 'none';
+
+                        if (!map) {
+                            // First time: Create the map
+                            map = L.map('map').setView(latLng, 16);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                            }).addTo(map);
+                            marker = L.marker(latLng).addTo(map).bindPopup('Live Location').openPopup();
+                        } else {
+                            // Subsequent times: Move the marker
+                            marker.setLatLng(latLng).update();
+                            map.panTo(latLng);
+                        }
+                    }
+                } else {
+                    // Document was deleted (sharing stopped)
+                    loadingDiv.style.display = 'flex';
+                    loadingDiv.innerText = "The live share session has ended.";
+                    if (map) { map.remove(); }
+                }
+            });
+
+        } catch (e) {
+            console.error(e);
+            loadingDiv.innerText = "An error occurred. Please check the link.";
+        }
+    </script>
+</body>
+</html>
