@@ -1,0 +1,8 @@
+# Hide all node modules
+node_modules/
+
+# Hide all secret environment variables
+.env
+
+# Hide the Firebase Admin SDK private key
+serviceAccountKey.json
