@@ -16,7 +16,6 @@ initializeApp({
   credential: cert(serviceAccount)
 });
 const db = getFirestore(); // This is your Admin database
-// NO mapsClient
 
 // --- Multer Setup ---
 const storage = multer.memoryStorage();
@@ -125,7 +124,7 @@ async function callGemini(payload) {
     throw lastError || new Error("All AI models are currently unavailable.");
 }
 
-// --- /ask-ai Endpoint (FIXED) ---
+// --- /ask-ai Endpoint ---
 app.post("/ask-ai", async (req, res) => {
     try {
         const { prompt } = req.body; 
@@ -146,7 +145,7 @@ app.post("/ask-ai", async (req, res) => {
 });
 
 
-// --- /send-share-link Endpoint (No change) ---
+// --- /send-share-link Endpoint ---
 app.post("/send-share-link", async (req, res) => {
     try {
         const { email, shareLink } = req.body; 
@@ -168,8 +167,21 @@ app.post("/send-share-link", async (req, res) => {
 });
 
 
-// --- /analyze-transcript Endpoint (FIXED) ---
-const AI_ANALYSIS_PROMPT = `You are a 911 dispatch operator... (full prompt)... TRANSCRIPT: `;
+// --- /analyze-transcript Endpoint ---
+const AI_ANALYSIS_PROMPT = `
+You are an Emergency Reporting System. 
+You are receiving a raw transcript of a conversation between a User and an AI Assistant during an emergency.
+
+Your Goal: Generate a clean, readable summary report for the user's emergency contacts.
+
+Instructions:
+1. Summarize the Key Facts: (What is happening? Is the user injured? Where are they?)
+2. Provide the EXACT TRANSCRIPT of the conversation.
+3. DO NOT roleplay. DO NOT speak like an operator (e.g. do NOT say "Stay on the line").
+4. Just report the data.
+
+RAW TRANSCRIPT: 
+`;
 
 app.post("/analyze-transcript", async (req, res) => {
     try {
@@ -189,8 +201,13 @@ app.post("/analyze-transcript", async (req, res) => {
         const mailOptions = {
             from: process.env.GMAIL_EMAIL,
             to: contactsArray,
-            subject: "⚠️ AI Situation Report ⚠️",
-            html: `<pre style="font-family: monospace; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 5px;">${aiAnalysis}</pre>`,
+            subject: "⚠️ Emergency Conversation Report ⚠️",
+            html: `
+            <h2>Emergency Situation Report</h2>
+            <p>The user has triggered an SOS. Below is the AI Analysis and the transcript of what they said:</p>
+            <hr/>
+            <pre style="font-family: sans-serif; white-space: pre-wrap; background: #f4f4f4; padding: 15px; border-radius: 5px; border: 1px solid #ccc;">${aiAnalysis}</pre>
+            `,
         };
 
         await transporter.sendMail(mailOptions);
@@ -211,39 +228,34 @@ app.post("/get-route-advice", async (req, res) => {
             return res.status(400).json({ message: "Destination is required." });
         }
 
-        // --- A: Get Unsafe Reports from Firestore (FREE) ---
+        // --- A: Get Unsafe Reports from Firestore ---
         const reportsSnapshot = await db.collection('unsafe_reports').get();
         const unsafeReports = reportsSnapshot.docs.map(doc => {
             const data = doc.data();
             return { lat: data.lat, lng: data.lng, timestamp: data.timestamp };
         });
 
-        // --- B: Prepare the AI Prompt (FREE) ---
+        // --- B: Prepare the AI Prompt ---
         const aiPrompt = `
 You are an expert safety co-pilot. A user is asking for walking safety advice to a destination.
 User's Destination: "${destination}"
 Our database of user-reported unsafe spots (lat/lng/timestamp) is: ${JSON.stringify(unsafeReports)}.
 Please do the following:
-1.  Analyze the user's destination (e.g., "Civil Hospital, Jalandhar").
-2.  Check if any of the unsafe spots from the database (use general geographic knowledge) might be near or on the way to this destination.
+1.  Analyze the user's destination.
+2.  Check if any of the unsafe spots from the database might be near or on the way.
 3.  If no spots seem relevant, just provide general walking safety tips.
-4.  If spots ARE relevant, *clearly warn them* (e.g., "Be cautious: We have user-reports of unsafe activity near [General Area] which may be on your route.")
+4.  If spots ARE relevant, clearly warn them.
 5.  Be calm, clear, and concise.
 
 Your advice:
 `;
 
-        // --- C: Call Gemini (FREE) ---
         const payload = {
             contents: [{ parts: [{ text: aiPrompt }] }]
         };
         
-        // --- THIS IS THE FIX ---
-        // Changed callGemimini(payload) to callGemini(payload)
         const aiAnalysis = await callGemini(payload);
-        // --- END OF FIX ---
 
-        // --- D: Send the AI's text advice back (FREE) ---
         res.status(200).json({ 
             aiAnalysis: aiAnalysis
         });
@@ -251,6 +263,35 @@ Your advice:
     } catch (error) {
         console.error("Error in /get-route-advice:", error.message);
         res.status(500).json({ message: "Error planning safe route advice." });
+    }
+});
+
+
+// ==========================================
+// --- 10. NEW FEATURE: Report Unsafe Spot ---
+// This was missing! You had a way to "Read" reports, but no way to "Create" them.
+// ==========================================
+app.post("/report-unsafe-spot", async (req, res) => {
+    try {
+        const { lat, lng, reason, description } = req.body;
+
+        if (!lat || !lng || !reason) {
+            return res.status(400).json({ message: "Location (lat/lng) and reason are required." });
+        }
+
+        await db.collection('unsafe_reports').add({
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            reason: reason, // e.g., "Poor Lighting", "Harassment", "Theft"
+            description: description || "",
+            timestamp: new Date().toISOString()
+        });
+
+        res.status(200).json({ message: "Unsafe spot reported successfully. Thank you for helping others." });
+
+    } catch (error) {
+        console.error("Error reporting unsafe spot:", error);
+        res.status(500).json({ message: "Failed to save report." });
     }
 });
 

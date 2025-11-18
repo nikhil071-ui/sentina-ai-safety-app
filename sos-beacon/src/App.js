@@ -26,77 +26,89 @@ function App() {
         }
     }, []);
 
-    // --- 1. NEW: Function to get transcript and send for analysis ---
-    const recordAndAnalyzeTranscript = useCallback(() => {
+    // --- 1. NEW: AI Interview Function ---
+    // This replaces the old "recordAndAnalyzeTranscript"
+    const startAiInterview = useCallback(() => {
         if (!SpeechRecognition) {
             console.warn("Speech recognition not supported.");
             return;
         }
 
-        try {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true; // Keep listening
-            recognition.interimResults = true; // Get results as they come
-            let finalTranscript = '';
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false; // We want it to stop after the user speaks
+        recognition.lang = 'en-US';
+        
+        let conversationLog = "";
 
+        // Helper function to make the AI Speak
+        const aiSpeak = (text, onComplete) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.1; // Slightly faster and more urgent
+            utterance.onend = onComplete; // Run the next step when finished speaking
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // Helper function to Listen
+        const aiListen = (duration, onComplete) => {
+            try {
+                recognition.start();
+                console.log("AI is listening...");
+            } catch(e) { console.error("Mic error", e); }
+
+            // Capture the result
             recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                console.log("Listening...", interimTranscript);
+                const transcript = event.results[0][0].transcript;
+                console.log("User said:", transcript);
+                conversationLog += `User: ${transcript}. `;
             };
 
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-            };
-
-            recognition.onend = async () => {
-                console.log("Final transcript:", finalTranscript);
-                if (!finalTranscript) {
-                    finalTranscript = "[No speech detected]";
-                }
-                
-                // Send the text transcript to our new backend endpoint
-                try {
-                    console.log("Uploading transcript for analysis...");
-                    const response = await fetch("http://localhost:4000/analyze-transcript", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ 
-                            transcript: finalTranscript,
-                            emergencyContacts: emergencyContacts.join(',') // Send as comma-separated string
-                        }), 
-                    });
-                    
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.message);
-                    
-                    console.log("AI Situation Report sent:", data.message);
-
-                } catch (error) {
-                    console.error("Failed to send text analysis:", error);
-                }
-            };
-            
-            // Start recording
-            recognition.start();
-            console.log("Recording 10 seconds of audio for transcription...");
-            
-            // Automatically stop after 10 seconds
+            // Stop listening after 'duration' milliseconds
             setTimeout(() => {
                 recognition.stop();
-            }, 10000); // 10-second recording
+                onComplete();
+            }, duration);
+        };
 
-        } catch (err) {
-            console.error("Microphone permission error or API error:", err);
-        }
+        // --- THE INTERVIEW FLOW ---
+        // Step 1: First Question
+        aiSpeak("Emergency Alert Sent. I am listening. Tell me exactly what is happening.", () => {
+            
+            // Step 2: Listen for 7 seconds
+            aiListen(7000, () => {
+                
+                // Step 3: Second Question
+                aiSpeak("I have recorded that. Are you injured? Do you need an ambulance?", () => {
+                    
+                    // Step 4: Listen for 5 seconds
+                    aiListen(5000, async () => {
+                        
+                        // Step 5: Finish and Send
+                        aiSpeak("Understood. I am sending this report to your contacts now. Keep moving to safety.", () => {});
+                        
+                        console.log("Full Interview:", conversationLog);
+                        if (!conversationLog) conversationLog = "[No speech detected during interview]";
 
-    }, [emergencyContacts]); // Depends on the contact list
+                        // Send to Backend
+                        try {
+                            const response = await fetch("http://localhost:4000/analyze-transcript", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ 
+                                    transcript: conversationLog,
+                                    emergencyContacts: emergencyContacts.join(',') 
+                                }), 
+                            });
+                            const data = await response.json();
+                            console.log("AI Situation Report sent:", data.message);
+                        } catch (error) {
+                            console.error("Failed to send interview:", error);
+                        }
+                    });
+                });
+            });
+        });
+
+    }, [emergencyContacts]);
 
 
     // --- 2. UPDATED: handleSosClick ---
@@ -109,10 +121,10 @@ function App() {
 
         setStatusMessage('Sending alert...');
 
-        // --- A. START RECORDING (New Function) ---
-        recordAndAnalyzeTranscript();
+        // --- A. START INTERVIEW (New Function) ---
+        startAiInterview();
 
-        // --- B. SEND IMMEDIATE ALERTS (Old Logic) ---
+        // --- B. SEND IMMEDIATE LOCATION ALERT (Old Logic) ---
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser.");
             setStatusMessage('Error: Geolocation not supported.');
@@ -120,8 +132,8 @@ function App() {
         }
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const { latitude, longitude } = position.coords;
-                const locationLink = `https://www.google.com/maps?q=$${latitude},${longitude}`;
+                const { longitude } = position.coords;
+                const locationLink = `http://googleusercontent.com/maps/google.com/18{latitude},${longitude}`;
                 
                 console.log(`Location: ${locationLink}`);
                 setStatusMessage('Location found. Sending email...');
@@ -135,13 +147,8 @@ function App() {
                 .then(data => console.log("Initial SOS Email sent:", data.message))
                 .catch((error) => console.error('Error sending initial SOS:', error));
 
-                try {
-                    const utterance = new SpeechSynthesisUtterance("Help. Help. Help. Emergency alert activated.");
-                    utterance.rate = 1.2;
-                    utterance.pitch = 1.5;
-                    window.speechSynthesis.speak(utterance);
-                } catch (e) { console.error("Audio alarm failed:", e); }
-
+                // Note: We removed the "Help Help Help" chant because the AI is now talking.
+                // We still open the dialer as a backup.
                 window.location.href = "tel:100";
 
                 setStatusMessage('Ready');
@@ -153,7 +160,7 @@ function App() {
                 setStatusMessage('Error: Unable to get location.');
             }
         );
-    }, [emergencyContacts, recordAndAnalyzeTranscript]); // Add new dependency
+    }, [emergencyContacts, startAiInterview]); 
 
 
     // --- 3. Pocket Trigger (No Change) ---

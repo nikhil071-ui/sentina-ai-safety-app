@@ -213,7 +213,6 @@ function SosApp({
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                // --- THIS IS THE FIX ---
                 // Creates a search query for "query" near the user's lat/lng
                 const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}+near+${latitude},${longitude}`;
                 window.open(url, '_blank');
@@ -268,27 +267,39 @@ function SosApp({
             return;
         }
 
-        if (!window.confirm("This will anonymously report your current location as an unsafe spot to help warn other users. Are you sure?")) {
-            return;
-        }
+        // 1. Get the reason from the user (Prompt instead of Confirm)
+        const reason = window.prompt(
+            "Why is this location unsafe?\n\n" +
+            "Please type one of the following:\n" +
+            "- Poor Lighting\n" +
+            "- Harassment\n" +
+            "- Theft\n" +
+            "- Other"
+        );
+
+        // If user clicked Cancel or didn't type anything, stop.
+        if (!reason) return;
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
+                
+                // 2. Add the 'reason' to the report object
                 const report = {
                     lat: latitude,
                     lng: longitude,
-                    timestamp: new Date() // Save the current time
+                    reason: reason, 
+                    timestamp: new Date()
                 };
 
                 try {
-                    // Create a unique ID for the report
                     const reportId = `report_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-                    // --- This is our new "danger heatmap" database ---
-                    const reportRef = doc(db, "unsafe_reports", reportId);
                     
+                    // Using Direct Firebase (matches your imports)
+                    const reportRef = doc(db, "unsafe_reports", reportId);
                     await setDoc(reportRef, report);
-                    alert("Unsafe spot reported. Thank you for helping the community.");
+                    
+                    alert(`Report submitted for: ${reason}. Thank you for helping the community.`);
                 } catch (error) {
                     console.error("Error reporting spot:", error);
                     alert("Could not report spot. Please try again.");
